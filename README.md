@@ -7,7 +7,9 @@ This is a complete quotation management system designed for  **Toba Welder** , a
 ## 🎥 Video Tutorial
 
 Watch the complete video tutorial below to learn how to use the system:
-[![Watch the video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+
+<iframe src="https://drive.google.com/file/d/1KUg8Lp9BwED_XBDgcjfXrLXgH2haJVl9/preview"
+        width="100%" height="480" allow="autoplay"></iframe>
 
 ---
 
@@ -46,12 +48,14 @@ Watch the complete video tutorial below to learn how to use the system:
 ### Step 1: Creating a New Quotation
 
 1. **Quote Number** is automatically generated based on the date:
+
    * Format: `YYYY/MM/DD/Number`
    * Example: `2025/10/04/001`
    * You only need to enter the last number
    * **Important:** Must be unique (system will warn you if it exists)
 2. **Select Date** - Defaults to today, but you can change it
 3. **Enter Customer Information:**
+
    * Customer Name (required)
    * Customer Address (required)
    * Phone (optional)
@@ -161,8 +165,10 @@ The system creates compact, professional PDFs optimized for printing:
 Two viewing contexts:
 
 1. **Generate Mode** (new quotations)
+
    * Shows: Save, Download PDF, Print buttons
 2. **View Mode** (from history)
+
    * Shows: Edit, Download PDF, Print buttons
 
 ### Export/Import System
@@ -318,7 +324,7 @@ ABN: 49280241868
 
 Phone: 0431509279
 
-Email: samosirbram1974@gmail.com
+Email: [samosirbram1974@gmail.com](mailto:samosirbram1974@gmail.com)
 
 ---
 
@@ -327,7 +333,7 @@ Email: samosirbram1974@gmail.com
 ```
 quotation.html          # Main application file
 logo.png               # Company logo (optional)
-TUTORIAL.mp4          # Video tutorial
+TUTORIAL.mp4          # Video tutorial (stored separately)
 README.md             # This file
 ```
 
@@ -347,7 +353,7 @@ README.md             # This file
 ## 🎓 Getting Started Checklist
 
 * [ ] Open `quotation.html` in your browser
-* [ ] Watch `TUTORIAL.mp4` for complete guide
+* [ ] Watch tutorial video via Google Drive embed
 * [ ] Create your first test quotation
 * [ ] Download the PDF to see output quality
 * [ ] Save to history
@@ -358,7 +364,3 @@ README.md             # This file
 ---
 
 **Ready to create professional quotations in minutes!** 🚀
-
-
-
-
