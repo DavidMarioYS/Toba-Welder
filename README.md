@@ -7,8 +7,10 @@ This is a complete quotation management system designed for  **Toba Welder** , a
 ## 🎥 Video Tutorial
 
 Watch the complete video tutorial below to learn how to use the system:
-
-<video width="100%" controls> <source src="TUTORIAL.mp4" type="video/mp4"> Your browser does not support the video tag. </video>
+<video width="100%" controls>
+  <source src="https://drive.google.com/uc?export=download&id=1KUg8Lp9BwED_XBDgcjfXrLXgH2haJVl9" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 
 ---
@@ -360,3 +362,4 @@ README.md             # This file
 ---
 
 **Ready to create professional quotations in minutes!** 🚀
+
