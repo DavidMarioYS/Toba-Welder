@@ -8,8 +8,9 @@ This is a complete quotation management system designed for  **Toba Welder** , a
 
 Watch the complete video tutorial below to learn how to use the system:
 
-<iframe src="https://drive.google.com/file/d/1KUg8Lp9BwED_XBDgcjfXrLXgH2haJVl9/preview"
-        width="100%" height="480" allow="autoplay"></iframe>
+## 🎥 Video Tutorial
+
+[![Watch the tutorial](https://img.shields.io/badge/▶️-Watch%20Tutorial-red)](https://drive.google.com/file/d/1KUg8Lp9BwED_XBDgcjfXrLXgH2haJVl9/view?usp=sharing)
 
 ---
 
@@ -364,3 +365,4 @@ README.md             # This file
 ---
 
 **Ready to create professional quotations in minutes!** 🚀
+
