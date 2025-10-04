@@ -1595,8 +1595,8 @@
                     </div>
                 </div>
 
-                <p style="margin-top: 20px; font-size: 9px; text-align: center; color: #888;">
-                    This quotation remains valid for 30 days from the date of issue. All welding work guaranteed to Australian Standards.
+                <p style="margin-top: 20px; font-size: 36px; text-align: center; color: #888;">
+                    THANK YOU
                 </p>
             `;
 
@@ -1841,7 +1841,7 @@
             // Generate filename
             const quoteNo = data.nomorKwitansi.replace(/\//g, '-');
             const cleanCustomerName = (data.customerName || 'Customer').replace(/[^a-zA-Z0-9]/g, '').substring(0, 20);
-            const filename = `Quote_${quoteNo}_${cleanCustomerName}.pdf`;
+            const filename = `Toba Welder_${quoteNo}_${cleanCustomerName}.pdf`;
             
             pdf.save(filename);
             
