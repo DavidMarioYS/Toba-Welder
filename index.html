@@ -1820,8 +1820,9 @@
                 
                 const previewContainer = document.getElementById('previewContainer');
                 
+                // PERBAIKAN 1: Scale ditingkatkan dari 2 menjadi 2.5 untuk kualitas lebih baik
                 const canvas = await html2canvas(previewContainer, {
-                    scale: 2,
+                    scale: 2.5,              // Ditingkatkan dari 2 ke 2.5
                     logging: false,
                     useCORS: true,
                     allowTaint: true,
@@ -1829,38 +1830,53 @@
                 });
                 
                 const { jsPDF } = window.jspdf;
+                
+                // PERBAIKAN 2: AUTO-DETECT ORIENTASI berdasarkan rasio konten
+                // Jika konten lebih lebar/persegi, gunakan Landscape (297x210mm)
+                // Jika konten lebih tinggi/panjang, gunakan Portrait (210x297mm)
+                const canvasRatio = canvas.width / canvas.height;
+                const isLandscape = canvasRatio > 0.85; // Threshold: jika rasio > 0.85 = landscape
+                
+                // PERBAIKAN 3: PDF dibuat dengan orientasi dinamis
                 const pdf = new jsPDF({
-                    orientation: 'p',
+                    orientation: isLandscape ? 'l' : 'p',  // 'l' = landscape, 'p' = portrait
                     unit: 'mm',
-                    format: 'a4'
+                    format: 'a4',
+                    compress: true  // Tambahan: kompresi untuk ukuran file lebih kecil
                 });
                 
                 const imgData = canvas.toDataURL('image/png', 1.0);
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const margin = 10;
+                
+                // PERBAIKAN 4: Ukuran kertas disesuaikan dengan orientasi
+                // Landscape A4 = 297mm (lebar) x 210mm (tinggi)
+                // Portrait A4 = 210mm (lebar) x 297mm (tinggi)
+                const pageWidth = isLandscape ? 297 : 210;
+                const pageHeight = isLandscape ? 210 : 297;
+                const margin = 8;  // PERBAIKAN 5: Margin dikurangi dari 10mm ke 8mm agar lebih luas
                 
                 const maxWidth = pageWidth - (margin * 2);
                 const maxHeight = pageHeight - (margin * 2);
                 
-                const canvasRatio = canvas.width / canvas.height;
-                const pageRatio = maxWidth / maxHeight;
-                
+                // Hitung ukuran gambar agar fit di halaman
                 let imgWidth, imgHeight;
                 
-                if (canvasRatio > pageRatio) {
+                if (canvasRatio > (maxWidth / maxHeight)) {
+                    // Konten lebih lebar - fit ke lebar halaman
                     imgWidth = maxWidth;
                     imgHeight = imgWidth / canvasRatio;
                 } else {
+                    // Konten lebih tinggi - fit ke tinggi halaman
                     imgHeight = maxHeight;
                     imgWidth = imgHeight * canvasRatio;
                 }
                 
+                // Center gambar di halaman
                 const xOffset = (pageWidth - imgWidth) / 2;
                 const yOffset = (pageHeight - imgHeight) / 2;
                 
                 pdf.addImage(imgData, 'PNG', xOffset, yOffset, imgWidth, imgHeight);
                 
+                // Generate filename
                 let filename;
                 if (type === 'invoice') {
                     const invNo = data.invoiceNumber.replace(/\//g, '-');
@@ -1873,7 +1889,9 @@
                 }
                 
                 pdf.save(filename);
-                showSuccess('✓ PDF downloaded successfully!');
+                
+                // PERBAIKAN 6: Notifikasi menampilkan orientasi yang digunakan
+                showSuccess('✓ PDF downloaded successfully! (' + (isLandscape ? 'Landscape Mode' : 'Portrait Mode') + ')');
                 
             } catch (error) {
                 console.error('PDF Generation Error:', error);
