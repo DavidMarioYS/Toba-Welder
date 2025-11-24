@@ -1035,6 +1035,116 @@
                 width: 100%;
             }
         }
+
+        /* ============================================
+        KODE BARU - TAMBAHKAN DI AKHIR CSS
+        ============================================ */
+
+        /* Status Partial Payment */
+        .status-partial {
+            background: #fff3e0;
+            color: #e65100;
+            border: 2px solid #ff9800;
+            font-weight: bold;
+        }
+
+        /* Payment Modal */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .payment-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .payment-modal h2 {
+            color: #ff8c00;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #ff8c00;
+        }
+
+        .invoice-payment-history {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #e0e0e0;
+        }
+
+        .invoice-payment-history h3 {
+            color: #333;
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .invoice-payment-history table {
+            width: 100%;
+            font-size: 10px;
+            border-collapse: collapse;
+        }
+
+        .invoice-payment-history th {
+            background: #f5f5f5;
+            padding: 6px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .invoice-payment-history td {
+            padding: 6px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .payment-progress-bar {
+            background: #f0f0f0;
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px 0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .payment-progress-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
+        }
+
+        /* Animasi untuk modal close */
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1239,6 +1349,10 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('tanggal').value = today;
             generateNomorPrefix();
+            
+            // MIGRATION: Update invoice lama
+            migrateOldInvoices();
+            
             loadQuotationHistory();
             loadInvoiceHistory();
             
@@ -1251,6 +1365,67 @@
                 }
             }, 2000);
         });
+
+        // ============================================
+        // MIGRATION: Update Invoice Lama ke Struktur Baru
+        // ============================================
+        function migrateOldInvoices() {
+            const history = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
+            let updated = false;
+            
+            history.forEach(invoice => {
+                // Cek jika invoice belum punya struktur baru
+                if (!invoice.payments) {
+                    invoice.payments = [];
+                    updated = true;
+                }
+                
+                if (!invoice.totalAmount) {
+                    invoice.totalAmount = (invoice.subtotal || 0) * 1.1;
+                    updated = true;
+                }
+                
+                if (invoice.amountPaid === undefined) {
+                    // Jika invoice.paymentStatus === 'paid', berarti sudah dibayar penuh
+                    if (invoice.paymentStatus === 'paid' && invoice.paymentDate) {
+                        invoice.amountPaid = invoice.totalAmount;
+                        invoice.amountOutstanding = 0;
+                        invoice.payments = [{
+                            paymentId: 'MIGRATED-' + Date.now(),
+                            date: invoice.paymentDate,
+                            amount: invoice.totalAmount,
+                            method: 'Bank Transfer',
+                            reference: 'Migrated from old system',
+                            notes: 'Payment recorded before system update'
+                        }];
+                    } else {
+                        invoice.amountPaid = 0;
+                        invoice.amountOutstanding = invoice.totalAmount;
+                    }
+                    updated = true;
+                }
+                
+                if (!invoice.paymentStatus) {
+                    invoice.paymentStatus = 'unpaid';
+                    updated = true;
+                }
+                
+                if (invoice.paymentPercentage === undefined) {
+                    invoice.paymentPercentage = invoice.totalAmount > 0 
+                        ? ((invoice.amountPaid / invoice.totalAmount) * 100).toFixed(2) 
+                        : 0;
+                    updated = true;
+                }
+            });
+            
+            if (updated) {
+                localStorage.setItem('invoiceHistory', JSON.stringify(history));
+                console.log('✅ Invoice migration completed!');
+                return true;
+            }
+            
+            return false;
+        }
 
         function generateNomorPrefix() {
             const tanggal = document.getElementById('tanggal').value;
@@ -1351,11 +1526,27 @@
             } else if (type === 'invoice') {
                 const invoiceHistory = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
                 const invoice = invoiceHistory[currentViewIndex];
-                const statusButtons = invoice && invoice.paymentStatus === 'unpaid' ? 
-                    `<button class="btn btn-success" onclick="markAsPaid(${currentViewIndex})">✓ Mark as Paid</button>` : '';
+                
+                // === DEBUG: Hapus setelah berhasil ===
+                console.log('=== DEBUG setupPreviewButtons ===');
+                console.log('currentViewIndex:', currentViewIndex);
+                console.log('invoice:', invoice);
+                console.log('paymentStatus:', invoice ? invoice.paymentStatus : 'INVOICE NULL');
+                console.log('payments:', invoice ? invoice.payments : 'INVOICE NULL');
+                // === END DEBUG ===
+                
+                let paymentButtons = '';
+                
+                if (invoice && invoice.paymentStatus !== 'paid') {
+                    paymentButtons = `
+                        <button class="btn btn-success" onclick="showAddPaymentDialog(${currentViewIndex})">
+                            💰 Add Payment
+                        </button>
+                    `;
+                }
                 
                 buttonsContainer.innerHTML = `
-                    ${statusButtons}
+                    ${paymentButtons}
                     <button class="btn btn-primary" onclick="downloadPDF('invoice')">📥 Download PDF</button>
                     <button class="btn btn-success" onclick="printDocument()">🖨️ Print</button>
                 `;
@@ -1563,9 +1754,7 @@
                 email,
                 notes,
                 items,
-                subtotal,
-                paymentStatus,
-                paymentDate
+                subtotal
             } = data;
 
             const gst = subtotal * 0.1;
@@ -1575,10 +1764,139 @@
             document.getElementById('mainWrapper').classList.remove('form-only');
             document.getElementById('mainWrapper').classList.add('with-preview');
 
-            const statusClass = paymentStatus === 'paid' ? 'status-paid' : 
-                                (paymentStatus === 'overdue' ? 'status-overdue' : 'status-unpaid');
-            const statusText = paymentStatus === 'paid' ? '✓ PAID' : 
-                              (paymentStatus === 'overdue' ? '⚠ OVERDUE' : '⏳ UNPAID');
+            // Calculate payment info
+            const paymentInfo = calculatePaymentStatus(data);
+            const amountPaid = paymentInfo.amountPaid;
+            const amountOutstanding = paymentInfo.amountOutstanding;
+            const paymentPercentage = parseFloat(paymentInfo.paymentPercentage);
+            const paymentStatus = paymentInfo.status;
+
+            // Determine status display
+            let statusClass, statusText, statusIcon;
+            
+            switch(paymentStatus) {
+                case 'paid':
+                    statusClass = 'status-paid';
+                    statusText = 'PAID';
+                    statusIcon = '✅';
+                    break;
+                case 'partial':
+                    statusClass = 'status-partial';
+                    statusText = 'PARTIAL PAID';
+                    statusIcon = '💰';
+                    break;
+                case 'overdue':
+                    statusClass = 'status-overdue';
+                    statusText = 'OVERDUE';
+                    statusIcon = '⚠️';
+                    break;
+                default:
+                    statusClass = 'status-unpaid';
+                    statusText = 'UNPAID';
+                    statusIcon = '⏳';
+            }
+
+            // Payment history section
+            let paymentHistoryHTML = '';
+            if (data.payments && data.payments.length > 0) {
+                paymentHistoryHTML = `
+                    <div class="invoice-payment-history">
+                        <h3>📅 Payment History</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Method</th>
+                                    <th style="text-align: right;">Amount</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.payments.map(payment => `
+                                    <tr>
+                                        <td>${formatDate(payment.date)}</td>
+                                        <td>${payment.method}</td>
+                                        <td style="text-align: right; font-weight: bold; color: #4caf50;">$${formatCurrency(payment.amount)}</td>
+                                        <td>${payment.notes}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            // Payment status section
+            let paymentStatusHTML = '';
+            
+            if (paymentStatus === 'paid') {
+                paymentStatusHTML = `
+                    <div class="invoice-payment-info" style="background: #e8f5e9; border-color: #4caf50;">
+                        <h3 style="color: #2e7d32;">✅ Payment Received - FULLY PAID</h3>
+                        <p><strong>Payment Date:</strong> ${formatDate(data.paymentDate)}</p>
+                        <p><strong>Total Amount Paid:</strong> $${formatCurrency(grandTotal)}</p>
+                        ${paymentHistoryHTML}
+                        <p style="margin-top: 10px; color: #2e7d32; font-weight: bold;">Thank you for your payment!</p>
+                    </div>
+                `;
+            } else if (paymentStatus === 'partial') {
+                paymentStatusHTML = `
+                    <div class="invoice-payment-info" style="background: #fff9e6; border: 2px solid #ff9800;">
+                        <h3 style="color: #e65100;">💰 Partial Payment Received</h3>
+                        
+                        <div style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-weight: 600; color: #666;">Total Invoice Amount:</span>
+                                <span style="font-size: 14px; font-weight: bold; color: #333;">$${formatCurrency(grandTotal)}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-weight: 600; color: #4caf50;">✅ Amount Paid:</span>
+                                <span style="font-size: 14px; font-weight: bold; color: #4caf50;">$${formatCurrency(amountPaid)}</span>
+                            </div>
+                            <div style="border-top: 2px solid #ff8c00; padding-top: 10px; margin-top: 10px;">
+                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
+                                    <span style="font-weight: bold; color: #ff8c00;">⏳ Outstanding Balance:</span>
+                                    <span style="font-size: 20px; font-weight: bold; color: #ff8c00;">$${formatCurrency(amountOutstanding)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-progress-bar" style="margin-top: 15px;">
+                                <div class="payment-progress-fill" style="width: ${paymentPercentage}%;">
+                                    ${paymentPercentage.toFixed(1)}% Paid
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${paymentHistoryHTML}
+                        
+                        <div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-radius: 5px; border-left: 4px solid #ff9800;">
+                            <p style="margin: 5px 0; font-weight: bold; color: #e65100;">⚠️ Remaining Payment Required: $${formatCurrency(amountOutstanding)}</p>
+                            <p style="margin: 8px 0 5px 0; font-size: 10px; color: #666;">Please make payment to:</p>
+                            <p style="margin: 3px 0; font-size: 10px;"><strong>Bank Transfer to:</strong> ${companyData.accountName}</p>
+                            <p style="margin: 3px 0; font-size: 10px;"><strong>BSB:</strong> ${companyData.bsb} | <strong>Account:</strong> ${companyData.accountNumber}</p>
+                            <p style="margin: 3px 0; font-size: 10px;"><strong>Bank:</strong> ANZ</p>
+                            <p style="margin: 3px 0; font-size: 10px;"><strong>Reference:</strong> ${invoiceNumber}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // UNPAID or OVERDUE
+                const warningText = paymentStatus === 'overdue' 
+                    ? '⚠️ PAYMENT OVERDUE - Please settle immediately' 
+                    : '⚠️ Payment Instructions';
+                    
+                paymentStatusHTML = `
+                    <div class="invoice-payment-info">
+                        <h3>${warningText}</h3>
+                        <p><strong>Payment is due immediately upon receipt of this invoice.</strong></p>
+                        <p><strong>Please make payment to:</strong></p>
+                        <p>Bank Transfer to ${companyData.accountName}</p>
+                        <p>BSB: ${companyData.bsb} | Account: ${companyData.accountNumber}</p>
+                        <p><strong>ANZ</strong></p>
+                        <p><strong>Reference:</strong> ${invoiceNumber}</p>
+                    </div>
+                `;
+            }
 
             const preview = document.getElementById('previewContainer');
             preview.className = 'invoice-preview';
@@ -1604,7 +1922,7 @@
                         <div class="invoice-title">INVOICE</div>
                         <div class="invoice-number"><strong>Invoice #:</strong> ${invoiceNumber}</div>
                         ${quoteReference ? `<div class="invoice-number"><strong>Quote Ref:</strong> ${quoteReference}</div>` : ''}
-                        <div class="invoice-status ${statusClass}">${statusText}</div>
+                        <div class="invoice-status ${statusClass}">${statusIcon} ${statusText}</div>
                     </div>
                 </div>
 
@@ -1631,15 +1949,15 @@
                         <div class="date-label">Issue Date</div>
                         <div class="date-value">${formatDate(issueDate)}</div>
                     </div>
-                    ${paymentDate ? `
+                    ${paymentStatus === 'paid' && data.paymentDate ? `
                     <div class="date-item">
                         <div class="date-label">Payment Date</div>
-                        <div class="date-value">${formatDate(paymentDate)}</div>
+                        <div class="date-value">${formatDate(data.paymentDate)}</div>
                     </div>
                     ` : `
                     <div class="date-item">
                         <div class="date-label">Status</div>
-                        <div class="date-value" style="color: #c62828; font-weight: bold;">⚠ Unpaid</div>
+                        <div class="date-value ${statusClass}">${statusIcon} ${statusText}</div>
                     </div>
                     `}
                 </div>
@@ -1684,24 +2002,7 @@
                     </div>
                 </div>
 
-                ${paymentStatus !== 'paid' ? `
-                <div class="invoice-payment-info">
-                    <h3>⚠ Payment Instructions</h3>
-                    <p><strong>Payment is due immediately upon receipt of this invoice.</strong></p>
-                    <p><strong>Please make payment to:</strong></p>
-                    <p>Bank Transfer to ${companyData.accountName}</p>
-                    <p>BSB: ${companyData.bsb} | Account: ${companyData.accountNumber}</p>
-                    <p><strong>ANZ</strong></p>
-                    <p><strong>Reference:</strong> ${invoiceNumber}</p>
-                </div>
-                ` : `
-                <div class="invoice-payment-info" style="background: #e8f5e9; border-color: #4caf50;">
-                    <h3 style="color: #2e7d32;">✓ Payment Received</h3>
-                    <p><strong>Payment Date:</strong> ${formatDate(paymentDate)}</p>
-                    <p><strong>Amount Paid:</strong> $${formatCurrency(grandTotal)}</p>
-                    <p style="margin-top: 10px; color: #2e7d32;">Thank you for your payment!</p>
-                </div>
-                `}
+                ${paymentStatusHTML}
 
                 ${notes ? `
                 <div class="invoice-notes">
@@ -1751,20 +2052,32 @@
             const invoiceCount = invoiceHistory.length + 1;
             const invoiceNumber = `INV-${year}/${month}/${day}/${String(invoiceCount).padStart(3, '0')}`;
             
+            // Calculate total
+            const subtotal = quotation.subtotal || 0;
+            const totalAmount = subtotal * 1.1; // with GST
 
             const invoiceData = {
                 invoiceNumber: invoiceNumber,
                 quoteReference: quotation.nomorKwitansi,
                 issueDate: invoiceDate.toISOString().split('T')[0],
+                dueDate: null, // bisa diisi manual nanti jika perlu
                 customerName: quotation.customerName,
                 customerAddress: quotation.customerAddress,
                 telepon: quotation.telepon || '',
                 email: quotation.email || '',
                 notes: quotation.notes || '',
                 items: quotation.items,
-                subtotal: quotation.subtotal,
+                subtotal: subtotal,
+                
+                // === PAYMENT TRACKING BARU ===
                 paymentStatus: 'unpaid',
+                totalAmount: totalAmount,
+                payments: [], // Array kosong, siap untuk di-isi
+                amountPaid: 0,
+                amountOutstanding: totalAmount,
+                paymentPercentage: 0,
                 paymentDate: null,
+                
                 timestamp: new Date().toISOString()
             };
 
@@ -1780,22 +2093,10 @@
             showInvoicePreview(invoiceData);
             setupPreviewButtons('view', 'invoice');
             
-            showSuccess('✓ Invoice created successfully from quotation!');
+            showSuccess('✅ Invoice created successfully from quotation!');
         }
 
-        function markAsPaid(invoiceIndex) {
-            if (confirm('Mark this invoice as paid?')) {
-                const invoiceHistory = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
-                invoiceHistory[invoiceIndex].paymentStatus = 'paid';
-                invoiceHistory[invoiceIndex].paymentDate = new Date().toISOString().split('T')[0];
-                localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory));
-                
-                loadInvoiceHistory();
-                viewInvoice(invoiceIndex);
-                showSuccess('✓ Invoice marked as paid!');
-            }
-        }
-
+        
         function formatCurrency(amount) {
             return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
@@ -2005,23 +2306,67 @@
             }
 
             tbody.innerHTML = history.map((item, index) => {
-                const total = (item.subtotal || 0) * 1.1;
-                const statusClass = item.paymentStatus === 'paid' ? 'status-paid' : 
-                                   (item.paymentStatus === 'overdue' ? 'status-overdue' : 'status-unpaid');
-                const statusText = item.paymentStatus === 'paid' ? '✓ Paid' : 
-                                  (item.paymentStatus === 'overdue' ? '⚠ Overdue' : '⏳ Unpaid');
+                // Recalculate payment info
+                const paymentInfo = calculatePaymentStatus(item);
+                const total = paymentInfo.totalAmount;
+                const amountPaid = paymentInfo.amountPaid;
+                const outstanding = paymentInfo.amountOutstanding;
+                const percentage = parseFloat(paymentInfo.paymentPercentage);
+                const status = paymentInfo.status;
+                
+                let statusClass, statusText, statusIcon;
+                
+                switch(status) {
+                    case 'paid':
+                        statusClass = 'status-paid';
+                        statusText = 'Paid';
+                        statusIcon = '✅';
+                        break;
+                    case 'partial':
+                        statusClass = 'status-partial';
+                        statusText = `Partial (${percentage.toFixed(0)}%)`;
+                        statusIcon = '💰';
+                        break;
+                    case 'overdue':
+                        statusClass = 'status-overdue';
+                        statusText = 'Overdue';
+                        statusIcon = '⚠️';
+                        break;
+                    default:
+                        statusClass = 'status-unpaid';
+                        statusText = 'Unpaid';
+                        statusIcon = '⏳';
+                }
 
                 return `
                     <tr>
                         <td><strong>${item.invoiceNumber}</strong></td>
                         <td>${formatDate(item.issueDate)}</td>
                         <td>${item.customerName || 'N/A'}</td>
-                        <td><strong>$${formatCurrency(total)}</strong></td>
-                        <td><span class="invoice-status ${statusClass}" style="padding: 4px 10px; border-radius: 12px; font-size: 11px;">${statusText}</span></td>
                         <td>
-                            ${item.paymentStatus === 'unpaid' ? `<button class="btn btn-success btn-small" onclick="markAsPaid(${index})" title="Mark as Paid">✓ Paid</button>` : ''}
-                            <button class="btn btn-success btn-small" onclick="viewInvoice(${index})" title="View">👁️ View</button>
-                            <button class="btn btn-danger btn-small" onclick="deleteFromHistory(${index}, 'invoice')" title="Delete">🗑️ Delete</button>
+                            <strong style="color: #333;">$${formatCurrency(total)}</strong>
+                            ${status === 'partial' ? `
+                                <br><small style="color: #4caf50; font-weight: 600;">✅ Paid: $${formatCurrency(amountPaid)}</small>
+                                <br><small style="color: #ff8c00; font-weight: 600;">⏳ Due: $${formatCurrency(outstanding)}</small>
+                            ` : ''}
+                        </td>
+                        <td>
+                            <span class="invoice-status ${statusClass}" style="padding: 5px 12px; border-radius: 12px; font-size: 11px; display: inline-block;">
+                                ${statusIcon} ${statusText}
+                            </span>
+                        </td>
+                        <td>
+                            ${status !== 'paid' ? `
+                                <button class="btn btn-success btn-small" onclick="showAddPaymentDialog(${index})" title="Add Payment">
+                                    💰 Pay
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-success btn-small" onclick="viewInvoice(${index})" title="View">
+                                👁️ View
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="deleteFromHistory(${index}, 'invoice')" title="Delete">
+                                🗑️ Delete
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -2049,6 +2394,27 @@
             const data = history[index];
             
             if (data) {
+                // PENTING: Inisialisasi struktur payment jika belum ada
+                if (!data.payments) {
+                    data.payments = [];
+                }
+                if (!data.paymentStatus) {
+                    data.paymentStatus = 'unpaid';
+                }
+                if (!data.totalAmount) {
+                    data.totalAmount = (data.subtotal || 0) * 1.1;
+                }
+                if (data.amountPaid === undefined) {
+                    data.amountPaid = 0;
+                }
+                if (data.amountOutstanding === undefined) {
+                    data.amountOutstanding = data.totalAmount;
+                }
+                
+                // Save updated structure
+                history[index] = data;
+                localStorage.setItem('invoiceHistory', JSON.stringify(history));
+                
                 currentViewContext = 'view';
                 currentViewIndex = index;
                 currentViewType = 'invoice';
@@ -2187,6 +2553,189 @@
                 };
                 reader.readAsText(file);
             }
+        }
+
+        // ============================================
+        // KODE BARU - PAYMENT TRACKING SYSTEM
+        // ============================================
+
+        // Calculate Payment Status and Info
+        function calculatePaymentStatus(invoice) {
+            const total = invoice.totalAmount || ((invoice.subtotal || 0) * 1.1);
+            const payments = invoice.payments || [];
+            const paid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+            const outstanding = total - paid;
+            const percentage = total > 0 ? (paid / total) * 100 : 0;
+            
+            let status;
+            if (paid === 0) {
+                status = 'unpaid';
+            } else if (paid >= total - 0.01) { // tolerance untuk rounding
+                status = 'paid';
+            } else {
+                status = 'partial';
+            }
+            
+            // Check overdue
+            if (status !== 'paid' && invoice.dueDate) {
+                const today = new Date();
+                const due = new Date(invoice.dueDate);
+                if (today > due) {
+                    status = 'overdue';
+                }
+            }
+            
+            return {
+                status: status,
+                totalAmount: total,
+                amountPaid: paid,
+                amountOutstanding: outstanding,
+                paymentPercentage: percentage.toFixed(2)
+            };
+        }
+
+        // Show Add Payment Dialog
+        function showAddPaymentDialog(invoiceIndex) {
+            const invoiceHistory = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
+            const invoice = invoiceHistory[invoiceIndex];
+            
+            if (!invoice) {
+                showError('Invoice not found!');
+                return;
+            }
+            
+            const paymentInfo = calculatePaymentStatus(invoice);
+            const outstanding = paymentInfo.amountOutstanding;
+            
+            const modal = `
+                <div class="payment-modal" id="paymentModal" onclick="if(event.target.id==='paymentModal') closePaymentModal()">
+                    <div class="payment-modal-content" onclick="event.stopPropagation()">
+                        <h2>💰 Record Payment</h2>
+                        <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 5px 0;"><strong>Invoice:</strong> ${invoice.invoiceNumber}</p>
+                            <p style="margin: 5px 0;"><strong>Customer:</strong> ${invoice.customerName}</p>
+                            <p style="margin: 10px 0 5px 0;"><strong>Outstanding Balance:</strong></p>
+                            <p style="color: #ff8c00; font-size: 24px; font-weight: bold; margin: 0;">$${formatCurrency(outstanding)}</p>
+                        </div>
+                        
+                        <form id="addPaymentForm" onsubmit="event.preventDefault(); recordPayment(${invoiceIndex});">
+                            <div class="form-group">
+                                <label>Payment Date <span class="required-field">*</span>:</label>
+                                <input type="date" id="paymentDate" value="${new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Amount Paid <span class="required-field">*</span>:</label>
+                                <input type="number" id="paymentAmount" step="0.01" min="0.01" 
+                                       max="${outstanding.toFixed(2)}" 
+                                       placeholder="Enter amount..." required>
+                                <small>Maximum: $${formatCurrency(outstanding)}</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Payment Method:</label>
+                                <select id="paymentMethod">
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="PayPal">PayPal</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Payment Reference:</label>
+                                <input type="text" id="paymentReference" placeholder="e.g., Transaction ID, Receipt No.">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Notes (Optional):</label>
+                                <textarea id="paymentNotes" rows="2" placeholder="e.g., Down Payment, First Installment, Final Payment..."></textarea>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-success">✅ Record Payment</button>
+                                <button type="button" class="btn btn-danger" onclick="closePaymentModal()">❌ Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modal);
+        }
+
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            if (modal) {
+                modal.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        function recordPayment(invoiceIndex) {
+            const invoiceHistory = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
+            const invoice = invoiceHistory[invoiceIndex];
+            
+            const paymentData = {
+                paymentId: 'PAY-' + Date.now(),
+                date: document.getElementById('paymentDate').value,
+                amount: parseFloat(document.getElementById('paymentAmount').value),
+                method: document.getElementById('paymentMethod').value,
+                reference: document.getElementById('paymentReference').value || '-',
+                notes: document.getElementById('paymentNotes').value || 'Payment received'
+            };
+            
+            // Validation
+            if (paymentData.amount <= 0) {
+                showError('Payment amount must be greater than 0!');
+                return;
+            }
+            
+            const paymentInfo = calculatePaymentStatus(invoice);
+            const outstanding = paymentInfo.amountOutstanding;
+            
+            if (paymentData.amount > outstanding + 0.01) { // tolerance
+                showError(`Payment amount ($${formatCurrency(paymentData.amount)}) cannot exceed outstanding balance ($${formatCurrency(outstanding)})!`);
+                return;
+            }
+            
+            // Initialize payments array if not exists
+            if (!invoice.payments) {
+                invoice.payments = [];
+            }
+            
+            // Add payment
+            invoice.payments.push(paymentData);
+            
+            // Recalculate payment info
+            const newPaymentInfo = calculatePaymentStatus(invoice);
+            invoice.paymentStatus = newPaymentInfo.status;
+            invoice.amountPaid = newPaymentInfo.amountPaid;
+            invoice.amountOutstanding = newPaymentInfo.amountOutstanding;
+            invoice.paymentPercentage = newPaymentInfo.paymentPercentage;
+            invoice.totalAmount = newPaymentInfo.totalAmount;
+            
+            // If fully paid, set payment date to last payment date
+            if (invoice.paymentStatus === 'paid') {
+                invoice.paymentDate = paymentData.date;
+            }
+            
+            // Save
+            localStorage.setItem('invoiceHistory', JSON.stringify(invoiceHistory));
+            
+            // Reload and show
+            loadInvoiceHistory();
+            closePaymentModal();
+            
+            // Show updated invoice
+            currentViewContext = 'view';
+            currentViewIndex = invoiceIndex;
+            currentViewType = 'invoice';
+            viewInvoice(invoiceIndex);
+            
+            showSuccess(`✅ Payment of $${formatCurrency(paymentData.amount)} recorded successfully!`);
         }
     </script>
 </body>
