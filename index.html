@@ -1000,39 +1000,142 @@
             }
         }
 
+        /* ============================================
+           RESPONSIVE CARD LAYOUT FOR MOBILE
+           ============================================ */
+
+        /* DEFAULT (Desktop): Hide cards, show table */
+        .history-cards {
+            display: none !important; /* Force hide di desktop */
+        }
+
+        /* MOBILE: Hide table, show cards */
         @media (max-width: 768px) {
-            .header {
+            .history-table {
+                display: none !important;
+            }
+
+            .history-cards {
+                display: block !important; /* Override untuk show di mobile */
+            }
+
+            .history-card {
+                background: white;
+                border: 2px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.3s;
+            }
+
+            .history-card:active {
+                transform: scale(0.98);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            }
+
+            .history-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #ff8c00;
+            }
+
+            .history-card-number {
+                font-size: 16px;
+                font-weight: bold;
+                color: #ff8c00;
+            }
+
+            .history-card-status {
+                padding: 5px 12px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .history-card-body {
+                margin-bottom: 15px;
+            }
+
+            .history-card-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .history-card-label {
+                font-weight: 600;
+                color: #666;
+                font-size: 13px;
+            }
+
+            .history-card-value {
+                text-align: right;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .history-card-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 15px;
+            }
+
+            .history-card-actions .btn-small {
+                flex: 1;
+                min-width: calc(50% - 4px);
+                text-align: center;
+                margin: 0;
+            }
+
+            /* Export/Import buttons stack on mobile */
+            .export-import-buttons {
                 flex-direction: column;
-                text-align: center;
-            }
-            
-            .header-text {
-                text-align: center;
-            }
-            
-            .header h1 {
-                font-size: 1.8em;
-            }
-            
-            .items-container {
-                padding: 15px;
-                min-width: auto;
-            }
-            
-            .main-wrapper.with-preview {
-                grid-template-columns: 1fr;
             }
 
-            .invoice-parties {
-                grid-template-columns: 1fr;
-            }
-
-            .invoice-dates {
-                grid-template-columns: 1fr;
-            }
-
-            .invoice-totals {
+            .export-import-buttons .btn {
                 width: 100%;
+                margin: 5px 0;
+            }
+
+            /* Adjust form for mobile */
+            .items-container {
+                min-width: auto;
+                overflow-x: auto;
+            }
+
+            .item-header,
+            .item-row {
+                min-width: 550px;
+            }
+            
+            /* EXCEPTION: Saat generate PDF, paksa desktop layout */
+            body.generating-pdf .history-table {
+                display: table !important;
+            }
+            
+            body.generating-pdf .history-cards {
+                display: none !important;
+            }
+            
+            body.generating-pdf .invoice-preview,
+            body.generating-pdf .kwitansi-preview {
+                max-width: 700px !important;
+                width: 700px !important;
+                min-width: 700px !important;
+            }
+            
+            body.generating-pdf .invoice-parties {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            body.generating-pdf .invoice-dates {
+                grid-template-columns: repeat(2, 1fr) !important;
             }
         }
 
@@ -1143,6 +1246,121 @@
             }
             to {
                 opacity: 0;
+            }
+        }
+
+        /* ============================================
+           RESPONSIVE CARD LAYOUT FOR MOBILE
+           ============================================ */
+
+        /* Desktop: show table, hide cards */
+        .history-cards {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            /* Hide table, show cards */
+            .history-table {
+                display: none;
+            }
+
+            .history-cards {
+                display: block;
+            }
+
+            .history-card {
+                background: white;
+                border: 2px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 15px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                transition: all 0.3s;
+            }
+
+            .history-card:active {
+                transform: scale(0.98);
+                box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            }
+
+            .history-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+                border-bottom: 2px solid #ff8c00;
+            }
+
+            .history-card-number {
+                font-size: 16px;
+                font-weight: bold;
+                color: #ff8c00;
+            }
+
+            .history-card-status {
+                padding: 5px 12px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: bold;
+            }
+
+            .history-card-body {
+                margin-bottom: 15px;
+            }
+
+            .history-card-row {
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
+                border-bottom: 1px solid #f0f0f0;
+            }
+
+            .history-card-label {
+                font-weight: 600;
+                color: #666;
+                font-size: 13px;
+            }
+
+            .history-card-value {
+                text-align: right;
+                font-size: 14px;
+                color: #333;
+            }
+
+            .history-card-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 15px;
+            }
+
+            .history-card-actions .btn-small {
+                flex: 1;
+                min-width: calc(50% - 4px);
+                text-align: center;
+                margin: 0;
+            }
+
+            /* Export/Import buttons stack on mobile */
+            .export-import-buttons {
+                flex-direction: column;
+            }
+
+            .export-import-buttons .btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+
+            /* Adjust form for mobile */
+            .items-container {
+                min-width: auto;
+                overflow-x: auto;
+            }
+
+            .item-header,
+            .item-row {
+                min-width: 550px;
             }
         }
     </style>
@@ -1292,6 +1510,9 @@
                         </tr>
                     </tbody>
                 </table>
+                
+                <!-- CARD VIEW FOR MOBILE -->
+                <div class="history-cards" id="quotationCards"></div>
             </div>
 
             <div id="invoiceHistory" class="history-content">
@@ -1322,6 +1543,9 @@
                         </tr>
                     </tbody>
                 </table>
+                
+                <!-- CARD VIEW FOR MOBILE -->
+                <div class="history-cards" id="invoiceCards"></div>
             </div>
         </div>
     </div>
@@ -1873,11 +2097,12 @@
                         
                         <div style="margin-top: 15px; padding: 12px; background: #fff3e0; border-radius: 5px; border-left: 4px solid #ff9800;">
                             <p style="margin: 5px 0; font-weight: bold; color: #e65100;">⚠️ Remaining Payment Required: $${formatCurrency(amountOutstanding)}</p>
-                            <p style="margin: 8px 0 5px 0; font-size: 10px; color: #666;">Please make payment to:</p>
-                            <p style="margin: 3px 0; font-size: 10px;"><strong>Bank Transfer to:</strong> ${companyData.accountName}</p>
-                            <p style="margin: 3px 0; font-size: 10px;"><strong>BSB:</strong> ${companyData.bsb} | <strong>Account:</strong> ${companyData.accountNumber}</p>
-                            <p style="margin: 3px 0; font-size: 10px;"><strong>Bank:</strong> ANZ</p>
-                            <p style="margin: 3px 0; font-size: 10px;"><strong>Reference:</strong> ${invoiceNumber}</p>
+                            <p style="margin: 8px 0 5px 0; font-size: 16px; color: #666;">Please make payment to:</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><strong>Bank Transfer to:</strong> ${companyData.accountName}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><strong>BSB:</strong> ${companyData.bsb}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><strong>Account:</strong> ${companyData.accountNumber}</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><strong>Bank:</strong> ANZ</p>
+                            <p style="margin: 3px 0; font-size: 12px;"><strong>Reference:</strong> ${invoiceNumber}</p>
                         </div>
                     </div>
                 `;
@@ -2123,57 +2348,76 @@
                 
                 const previewContainer = document.getElementById('previewContainer');
                 
-                // PERBAIKAN 1: Scale ditingkatkan dari 2 menjadi 2.5 untuk kualitas lebih baik
+                // ============================================
+                // PERBAIKAN: FORCE DESKTOP LAYOUT UNTUK PDF
+                // ============================================
+                
+                // 1. Simpan viewport asli
+                const originalViewport = document.querySelector('meta[name="viewport"]').getAttribute('content');
+                
+                // 2. Ubah viewport sementara ke desktop
+                document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=1024');
+                
+                // 3. Tambah class untuk override mobile CSS
+                document.body.classList.add('generating-pdf');
+                
+                // 4. Force repaint/reflow
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // 5. Get actual width untuk detect orientation
+                const actualWidth = previewContainer.offsetWidth;
+                
+                // Generate canvas dengan setting optimal
                 const canvas = await html2canvas(previewContainer, {
-                    scale: 2.5,              // Ditingkatkan dari 2 ke 2.5
+                    scale: 3,  // Tingkatkan ke 3 untuk kualitas maksimal
                     logging: false,
                     useCORS: true,
                     allowTaint: true,
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    width: actualWidth > 600 ? actualWidth : 700,  // Minimum 700px
+                    windowWidth: 1024  // Force desktop rendering
                 });
+                
+                // 6. Restore viewport & remove class
+                document.querySelector('meta[name="viewport"]').setAttribute('content', originalViewport);
+                document.body.classList.remove('generating-pdf');
+                
+                // ============================================
+                // GENERATE PDF
+                // ============================================
                 
                 const { jsPDF } = window.jspdf;
                 
-                // PERBAIKAN 2: AUTO-DETECT ORIENTASI berdasarkan rasio konten
-                // Jika konten lebih lebar/persegi, gunakan Landscape (297x210mm)
-                // Jika konten lebih tinggi/panjang, gunakan Portrait (210x297mm)
+                // Auto-detect orientasi berdasarkan rasio konten
                 const canvasRatio = canvas.width / canvas.height;
-                const isLandscape = canvasRatio > 0.85; // Threshold: jika rasio > 0.85 = landscape
+                const isLandscape = canvasRatio > 0.85;
                 
-                // PERBAIKAN 3: PDF dibuat dengan orientasi dinamis
                 const pdf = new jsPDF({
-                    orientation: isLandscape ? 'l' : 'p',  // 'l' = landscape, 'p' = portrait
+                    orientation: isLandscape ? 'l' : 'p',
                     unit: 'mm',
                     format: 'a4',
-                    compress: true  // Tambahan: kompresi untuk ukuran file lebih kecil
+                    compress: true
                 });
                 
                 const imgData = canvas.toDataURL('image/png', 1.0);
                 
-                // PERBAIKAN 4: Ukuran kertas disesuaikan dengan orientasi
-                // Landscape A4 = 297mm (lebar) x 210mm (tinggi)
-                // Portrait A4 = 210mm (lebar) x 297mm (tinggi)
                 const pageWidth = isLandscape ? 297 : 210;
                 const pageHeight = isLandscape ? 210 : 297;
-                const margin = 8;  // PERBAIKAN 5: Margin dikurangi dari 10mm ke 8mm agar lebih luas
+                const margin = 8;
                 
                 const maxWidth = pageWidth - (margin * 2);
                 const maxHeight = pageHeight - (margin * 2);
                 
-                // Hitung ukuran gambar agar fit di halaman
                 let imgWidth, imgHeight;
                 
                 if (canvasRatio > (maxWidth / maxHeight)) {
-                    // Konten lebih lebar - fit ke lebar halaman
                     imgWidth = maxWidth;
                     imgHeight = imgWidth / canvasRatio;
                 } else {
-                    // Konten lebih tinggi - fit ke tinggi halaman
                     imgHeight = maxHeight;
                     imgWidth = imgHeight * canvasRatio;
                 }
                 
-                // Center gambar di halaman
                 const xOffset = (pageWidth - imgWidth) / 2;
                 const yOffset = (pageHeight - imgHeight) / 2;
                 
@@ -2193,11 +2437,18 @@
                 
                 pdf.save(filename);
                 
-                // PERBAIKAN 6: Notifikasi menampilkan orientasi yang digunakan
-                showSuccess('✓ PDF downloaded successfully! (' + (isLandscape ? 'Landscape Mode' : 'Portrait Mode') + ')');
+                showSuccess('✅ PDF downloaded successfully! (High Quality - ' + (isLandscape ? 'Landscape' : 'Portrait') + ' Mode)');
                 
             } catch (error) {
                 console.error('PDF Generation Error:', error);
+                
+                // Pastikan cleanup jika error
+                document.body.classList.remove('generating-pdf');
+                const viewport = document.querySelector('meta[name="viewport"]');
+                if (viewport) {
+                    viewport.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                }
+                
                 alert(`Failed to generate PDF: ${error.message}`);
             }
         }
@@ -2254,21 +2505,24 @@
         function loadQuotationHistory() {
             const history = JSON.parse(localStorage.getItem('kwitansiHistory') || '[]');
             const tbody = document.getElementById('quotationTable');
+            const cardsContainer = document.getElementById('quotationCards');
             
             if (history.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="empty-state">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                            </svg>
-                            <p>No quotations yet</p>
-                        </td>
-                    </tr>
+                const emptyState = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                        </svg>
+                        <p>No quotations yet</p>
+                    </div>
                 `;
+                
+                tbody.innerHTML = `<tr><td colspan="5">${emptyState}</td></tr>`;
+                if (cardsContainer) cardsContainer.innerHTML = emptyState;
                 return;
             }
 
+            // TABLE VIEW (Desktop)
             tbody.innerHTML = history.map((item, index) => {
                 const total = (item.subtotal || 0) * 1.1;
 
@@ -2287,28 +2541,65 @@
                     </tr>
                 `;
             }).join('');
+
+            // CARD VIEW (Mobile)
+            if (cardsContainer) {
+                cardsContainer.innerHTML = history.map((item, index) => {
+                    const total = (item.subtotal || 0) * 1.1;
+
+                    return `
+                        <div class="history-card">
+                            <div class="history-card-header">
+                                <div class="history-card-number">${item.nomorKwitansi}</div>
+                            </div>
+                            <div class="history-card-body">
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Date:</span>
+                                    <span class="history-card-value">${formatDate(item.tanggal)}</span>
+                                </div>
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Customer:</span>
+                                    <span class="history-card-value">${item.customerName || 'N/A'}</span>
+                                </div>
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Total:</span>
+                                    <span class="history-card-value" style="font-weight: bold; color: #ff8c00;">$${formatCurrency(total)}</span>
+                                </div>
+                            </div>
+                            <div class="history-card-actions">
+                                <button class="btn btn-invoice btn-small" onclick="convertToInvoice(${index})">🧾 Invoice</button>
+                                <button class="btn btn-success btn-small" onclick="viewQuotation(${index})">👁️ View</button>
+                                <button class="btn btn-primary btn-small" onclick="editFromHistory(${index}, 'quotation')">✏️ Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="deleteFromHistory(${index}, 'quotation')">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         function loadInvoiceHistory() {
             const history = JSON.parse(localStorage.getItem('invoiceHistory') || '[]');
             const tbody = document.getElementById('invoiceTable');
+            const cardsContainer = document.getElementById('invoiceCards');
             
             if (history.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" class="empty-state">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-                            </svg>
-                            <p>No invoices yet</p>
-                        </td>
-                    </tr>
+                const emptyState = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                        </svg>
+                        <p>No invoices yet</p>
+                    </div>
                 `;
+                
+                tbody.innerHTML = `<tr><td colspan="6">${emptyState}</td></tr>`;
+                if (cardsContainer) cardsContainer.innerHTML = emptyState;
                 return;
             }
 
+            // TABLE VIEW (Desktop)
             tbody.innerHTML = history.map((item, index) => {
-                // Recalculate payment info
                 const paymentInfo = calculatePaymentStatus(item);
                 const total = paymentInfo.totalAmount;
                 const amountPaid = paymentInfo.amountPaid;
@@ -2373,6 +2664,88 @@
                     </tr>
                 `;
             }).join('');
+
+            // CARD VIEW (Mobile)
+            if (cardsContainer) {
+                cardsContainer.innerHTML = history.map((item, index) => {
+                    const paymentInfo = calculatePaymentStatus(item);
+                    const total = paymentInfo.totalAmount;
+                    const amountPaid = paymentInfo.amountPaid;
+                    const outstanding = paymentInfo.amountOutstanding;
+                    const percentage = parseFloat(paymentInfo.paymentPercentage);
+                    const status = paymentInfo.status;
+                    
+                    let statusClass, statusText, statusIcon;
+                    
+                    switch(status) {
+                        case 'paid':
+                            statusClass = 'status-paid';
+                            statusText = 'Paid';
+                            statusIcon = '✅';
+                            break;
+                        case 'partial':
+                            statusClass = 'status-partial';
+                            statusText = `Partial (${percentage.toFixed(0)}%)`;
+                            statusIcon = '💰';
+                            break;
+                        case 'overdue':
+                            statusClass = 'status-overdue';
+                            statusText = 'Overdue';
+                            statusIcon = '⚠️';
+                            break;
+                        default:
+                            statusClass = 'status-unpaid';
+                            statusText = 'Unpaid';
+                            statusIcon = '⏳';
+                    }
+
+                    return `
+                        <div class="history-card">
+                            <div class="history-card-header">
+                                <div class="history-card-number">${item.invoiceNumber}</div>
+                                <span class="history-card-status ${statusClass}">${statusIcon} ${statusText}</span>
+                            </div>
+                            <div class="history-card-body">
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Date:</span>
+                                    <span class="history-card-value">${formatDate(item.issueDate)}</span>
+                                </div>
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Customer:</span>
+                                    <span class="history-card-value">${item.customerName || 'N/A'}</span>
+                                </div>
+                                <div class="history-card-row">
+                                    <span class="history-card-label">Total:</span>
+                                    <span class="history-card-value" style="font-weight: bold;">$${formatCurrency(total)}</span>
+                                </div>
+                                ${status === 'partial' ? `
+                                    <div class="history-card-row">
+                                        <span class="history-card-label">Paid:</span>
+                                        <span class="history-card-value" style="color: #4caf50; font-weight: bold;">$${formatCurrency(amountPaid)}</span>
+                                    </div>
+                                    <div class="history-card-row">
+                                        <span class="history-card-label">Outstanding:</span>
+                                        <span class="history-card-value" style="color: #ff8c00; font-weight: bold;">$${formatCurrency(outstanding)}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                            <div class="history-card-actions">
+                                ${status !== 'paid' ? `
+                                    <button class="btn btn-success btn-small" onclick="showAddPaymentDialog(${index})">
+                                        💰 Pay
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-success btn-small" onclick="viewInvoice(${index})">
+                                    👁️ View
+                                </button>
+                                <button class="btn btn-danger btn-small" onclick="deleteFromHistory(${index}, 'invoice')">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         function viewQuotation(index) {
